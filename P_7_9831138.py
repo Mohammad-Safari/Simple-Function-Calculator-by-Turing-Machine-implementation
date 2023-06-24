@@ -82,6 +82,11 @@ class TransitionAppeneder:
     def curr_state(self):
         next = sstate if self.state_id == 0 else f"Q{self.state_id}"
         return next
+        
+    def go_to_start(self, entry_state, out_state):
+        # go back to start of ones
+        self.transitions.append(Transition(entry_state, one, entry_state, one, left))
+        self.transitions.append(Transition(entry_state, blank, out_state, blank, right))
 
     def bound_comparator_transition(self, entry_state, lt_bound_state, gte_bound_state):
         self.transitions.append(Transition(entry_state, blank, lt_bound_state, blank, left))
@@ -125,8 +130,15 @@ def main(argv):
     x = argv[1]
     x_unary = Utils.unary_string(int(x))
     tape = [blank]+x_unary+[blank]
+    
     ta = TransitionAppeneder()
-    ta.mod_transition(ta.next_state(), fstate)
+    start = ta.next_state()
+    mod_start = ta.next_state()
+    go_to_start_for_mod = ta.next_state()
+    ta.mod_transition(mod_start, fstate)
+    ta.go_to_start(go_to_start_for_mod, mod_start)
+    ta.bound_comparator_transition(start, fstate, go_to_start_for_mod)
+
     m = Machine(sstate, ta.transitions, [fstate])
     result = m.inputString(tape)
     print(Utils.unary_to_int(result))
