@@ -147,7 +147,11 @@ class TransitionAppeneder:
 
 
     def add_transition(self, entry_state, out_state):
-        self.transitions.append(Transition(entry_state, one, out_state, one, right))
+        self.transitions.append(Transition(entry_state, one, self.next_state(), one, right))
+        self.transitions.append(Transition(self.curr_state(), blank, self.next_state(), one, right))
+        for i in range(1, 4):
+            self.transitions.append(Transition(self.curr_state(), blank, self.next_state(), one, right))
+        self.transitions.append(Transition(self.curr_state(), blank, out_state, one, right))
 
 
 def main(argv):
