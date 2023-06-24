@@ -155,6 +155,10 @@ def main(argv):
         print("entering X value is necessary!")
         return
     x = argv[1]
+    if int(x) <= 0:
+        print("function domain is positive integers...")
+        print("tip: unary representation of input does not have meaning for other than positive integers")
+        return
     x_unary = Utils.unary_string(int(x))
     tape = [blank]+x_unary+[blank]
     
