@@ -45,6 +45,9 @@ class Machine:
                         + [transition.write]
                         + input[self.cursor + 1 :]
                     )
+                    ## for extendibilty of tape in multiplication and addition
+                    if input[-1] != blank:
+                        input += [blank]
                     self.cursor = (
                         self.cursor + 1 if transition.move == right else self.cursor - 1
                     )
@@ -124,6 +127,28 @@ class TransitionAppeneder:
             self.transitions.append(Transition(self.curr_state(), blank, self.next_state(), blank, right))
         self.transitions.append(Transition(self.curr_state(), blank, entry_state, blank, right))
 
+    def mult_transition(self, entry_state, out_state):
+        self.transitions.append(Transition(entry_state, blank, out_state, blank, left))
+        # if reach zeros start to replace them
+        self.transitions.append(Transition(entry_state, zero, entry_state, one, right))
+        # erase and go to end
+        self.transitions.append(Transition(entry_state, one, self.next_state(), blank, right))
+        self.transitions.append(Transition(self.curr_state(), one, self.curr_state(), one, right))
+        self.transitions.append(Transition(self.curr_state(), zero, self.curr_state(), zero, right))
+
+        # write 000 at the end
+        self.transitions.append(Transition(self.curr_state(), blank, self.next_state(), zero, right))
+        self.transitions.append(Transition(self.curr_state(), blank, self.next_state(), zero, right))
+        self.transitions.append(Transition(self.curr_state(), blank, self.next_state(), zero, left))
+        # go back to start
+        self.transitions.append(Transition(self.curr_state(), zero, self.curr_state(), zero, left))
+        self.transitions.append(Transition(self.curr_state(), one, self.curr_state(), one, left))
+        self.transitions.append(Transition(self.curr_state(), blank, entry_state, blank, right))
+
+
+    def add_transition(self, entry_state, out_state):
+        self.transitions.append(Transition(entry_state, one, out_state, one, right))
+
 
 def main(argv):
     if len(argv) < 2:
@@ -136,10 +161,16 @@ def main(argv):
     ta = TransitionAppeneder()
     start = ta.next_state()
     mod_start = ta.next_state()
+    mult_start = ta.next_state()
+    add_start = ta.next_state()
     go_to_start_for_mod = ta.next_state()
+    go_to_start_for_mult = ta.next_state()
+    ta.add_transition(add_start, fstate)
     ta.mod_transition(mod_start, fstate)
+    ta.mult_transition(mult_start, add_start)
     ta.go_to_start(go_to_start_for_mod, mod_start)
-    ta.bound_comparator_transition(start, fstate, go_to_start_for_mod)
+    ta.go_to_start(go_to_start_for_mult, mult_start)
+    ta.bound_comparator_transition(start, go_to_start_for_mult, go_to_start_for_mod)
 
     m = Machine(sstate, ta.transitions, [fstate])
     result = m.inputString(tape)
