@@ -85,8 +85,10 @@ class TransitionAppeneder:
         
     def go_to_start(self, entry_state, out_state):
         # go back to start of ones
-        self.transitions.append(Transition(entry_state, one, entry_state, one, left))
-        self.transitions.append(Transition(entry_state, blank, out_state, blank, right))
+        self.transitions.append(Transition(entry_state, blank, entry_state, blank, left))
+        self.transitions.append(Transition(entry_state, one, self.next_state(), one, left))
+        self.transitions.append(Transition(self.curr_state(), one, self.curr_state(), one, left))
+        self.transitions.append(Transition(self.curr_state(), blank, out_state, blank, right))
 
     def bound_comparator_transition(self, entry_state, lt_bound_state, gte_bound_state):
         self.transitions.append(Transition(entry_state, blank, lt_bound_state, blank, left))
