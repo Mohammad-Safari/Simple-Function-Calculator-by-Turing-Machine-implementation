@@ -7,6 +7,8 @@ any = "*"
 lamb = "λ"
 left = "L"
 right = "R"
+sstate = "S"
+fstate = "F"
 
 
 class Transition:
@@ -27,22 +29,20 @@ class Machine:
         self.transitions = transitions
         self.end_states = end_states
         ##
-        self.cursor = 0
+        self.cursor = 1  # first one is meant to be blank so we start from index 1
         self.current_state = self.start_state
 
-    def inputString(self, input: str):
-        while (not self.cursor == len(input)) and (
-            self.current_state not in self.end_states
-        ):
+    def inputString(self, input: list[chr]):
+        while self.current_state not in self.end_states:
             for transition in self.transitions:
                 if (
                     transition.f_state == self.current_state
-                    and input[self.cursor] == transition.read
+                    and transition.read == input[self.cursor]
                 ):
                     self.current_state = transition.t_state
                     input = (
                         input[: self.cursor]
-                        + transition.write
+                        + [transition.write]
                         + input[self.cursor + 1 :]
                     )
                     self.cursor = (
@@ -61,7 +61,6 @@ class Utils:
             n -= 1
         return output
 
-
     def unary_to_int(arr):
         num = 0
         for i in range(len(arr)):
@@ -77,11 +76,11 @@ class TransitionAppeneder:
 
     def next_state(self):
         self.state_id += 1
-        next = "S" if self.state_id == 0 else f"Q{self.state_id}"
+        next = sstate if self.state_id == 0 else f"Q{self.state_id}"
         return next
-    
+
     def curr_state(self):
-        next = "S" if self.state_id == 0 else f"Q{self.state_id}"
+        next = sstate if self.state_id == 0 else f"Q{self.state_id}"
         return next
 
     def bound_comparator_transition(self, entry_state, lt_bound_state, gte_bound_state):
@@ -95,7 +94,28 @@ class TransitionAppeneder:
         self.transitions.append(Transition(self.curr_state(), blank, lt_bound_state, blank, left))
         self.transitions.append(Transition(self.curr_state(), one, gte_bound_state, one, right))
 
+    def mod_transition(self, entry_state, out_state):
+        # reading to 4 ones
+        self.transitions.append(Transition(entry_state, blank, out_state, blank, left))
+        self.transitions.append(Transition(entry_state, one, self.next_state(), one, right))
 
+        for i in range(1, 4):
+            self.transitions.append(Transition(self.curr_state(), blank, out_state, blank, left))
+            self.transitions.append(Transition(self.curr_state(), one, self.next_state(), one, right))
+        cur, nex = self.curr_state(), self.next_state()
+        self.transitions.append(Transition(cur, one, nex, one, left))
+        self.transitions.append(Transition(cur, blank, nex, blank, left))
+
+        # erasing a batch of 4 ones
+        for i in range(0, 4):
+            self.transitions.append(Transition(self.curr_state(), one, self.next_state(), blank, left))
+        cur, nex = self.curr_state(), self.next_state()
+        self.transitions.append(Transition(cur, blank, nex, blank, right))
+
+        # getting back 4 house ahead
+        for i in range(0, 3):
+            self.transitions.append(Transition(self.curr_state(), blank, self.next_state(), blank, right))
+        self.transitions.append(Transition(self.curr_state(), blank, entry_state, blank, right))
 
 
 def main(argv):
@@ -104,7 +124,12 @@ def main(argv):
         return
     x = argv[1]
     x_unary = Utils.unary_string(int(x))
-    print(x_unary)
+    tape = [blank]+x_unary+[blank]
+    ta = TransitionAppeneder()
+    ta.mod_transition(ta.next_state(), fstate)
+    m = Machine(sstate, ta.transitions, [fstate])
+    result = m.inputString(tape)
+    print(Utils.unary_to_int(result))
 
 
 if __name__ == "__main__":
