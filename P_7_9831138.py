@@ -18,6 +18,41 @@ class Transition:
         self.write = write
         self.move = move
 
+
+class Machine:
+    def __init__(
+        self, start_state: str, transitions: list[Transition], end_states: list[str]
+    ):
+        ##
+        self.start_state = start_state
+        self.transitions = transitions
+        self.end_states = end_states
+        ##
+        self.cursor = 0
+        self.current_state = self.start_state
+
+    def inputString(self, input: str):
+        while (not self.cursor == len(input)) and (
+            self.current_state not in self.end_states
+        ):
+            for transition in self.transitions:
+                if (
+                    transition.f_state == self.current_state
+                    and input[self.cursor] == transition.read
+                ):
+                    self.current_state = transition.t_state
+                    input = (
+                        input[: self.cursor]
+                        + transition.write
+                        + input[self.cursor + 1 :]
+                    )
+                    self.cursor = (
+                        self.cursor + 1 if transition.move == right else self.cursor - 1
+                    )
+                    break
+        return input
+
+
 class Utils:
     def unary_string(num):
         output = []
