@@ -7,7 +7,6 @@ any = "*"
 lamb = "λ"
 left = "L"
 right = "R"
-transitions = []
 
 
 class Transition:
@@ -69,6 +68,34 @@ class Utils:
             if arr[i] == "1":
                 num += 1
         return num
+
+
+class TransitionAppeneder:
+    def __init__(self):
+        self.transitions = []
+        self.state_id = -1
+
+    def next_state(self):
+        self.state_id += 1
+        next = "S" if self.state_id == 0 else f"Q{self.state_id}"
+        return next
+    
+    def curr_state(self):
+        next = "S" if self.state_id == 0 else f"Q{self.state_id}"
+        return next
+
+    def bound_comparator_transition(self, entry_state, lt_bound_state, gte_bound_state):
+        self.transitions.append(Transition(entry_state, blank, lt_bound_state, blank, left))
+        self.transitions.append(Transition(entry_state, one, self.next_state(), one, right))
+
+        for i in range(1, 19):
+            self.transitions.append(Transition(self.curr_state(), blank, lt_bound_state, blank, left))
+            self.transitions.append(Transition(self.curr_state(), one, self.next_state(), one, right))
+
+        self.transitions.append(Transition(self.curr_state(), blank, lt_bound_state, blank, left))
+        self.transitions.append(Transition(self.curr_state(), one, gte_bound_state, one, right))
+
+
 
 
 def main(argv):
